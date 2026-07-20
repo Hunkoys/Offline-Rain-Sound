@@ -4,7 +4,11 @@ Simple and Local* Rain/Noise Machine in the browser. [Try it here!](http://offli
 
 <img width="870" height="587" alt="image" src="https://github.com/user-attachments/assets/c2ce8f5f-cb40-4837-bdfa-48b5d254d58d" />
 
-[Offline Rain Sound](http://offline-rain-sound.vercel.app)
+## How to use
+
+1. Go to [Offline Rain Sound](http://offline-rain-sound.vercel.app)
+2. Allow local storage permissions.
+3. Pick a sound and press play.
 
 ## The Problem
 I needed a reliable way to play soothing white noise and rain sounds on my Facebook Portal Go. However, the Portal's browser is restrictive, and I couldn't rely on a stable internet connection in the nursery. 
