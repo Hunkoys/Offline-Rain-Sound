@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Offline Rain Sound</title>
+    <title>Offline Noise Machine</title>
 
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="Player" />
+    <meta name="apple-mobile-web-app-title" content="Noise Machine" />
     <link
       rel="apple-touch-icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>"
@@ -32,7 +32,6 @@
           sans-serif;
       }
 
-      /* The Title / Dropdown Area */
       .header-container {
         display: flex;
         align-items: center;
@@ -40,16 +39,14 @@
         margin-bottom: 50px;
       }
 
-      /* Visual Indicator Dot */
       .status-indicator {
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background-color: #333; /* Default paused state */
+        background-color: #333;
         transition: all 0.3s ease;
       }
 
-      /* The glowing pulse effect when playing */
       .status-indicator.playing {
         background-color: #1ed760;
         box-shadow: 0 0 15px #1ed760;
@@ -70,27 +67,25 @@
         }
       }
 
-      /* Massive Title Dropdown */
       #sound-picker {
         appearance: none;
         -webkit-appearance: none;
         background: transparent;
         border: none;
         color: #ffffff;
-        font-size: 3.5rem;
+        font-size: 3rem;
         font-weight: bold;
         text-align: center;
         cursor: pointer;
         font-family: inherit;
         outline: none;
-        padding-right: 30px; /* Space for a custom arrow */
+        padding-right: 40px;
         background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
         background-repeat: no-repeat;
         background-position: right center;
-        background-size: 24px;
+        background-size: 28px;
       }
 
-      /* Button Layout */
       .controls {
         display: flex;
         gap: 20px;
@@ -116,23 +111,23 @@
     </style>
   </head>
   <body>
-    <!-- Title and Indicator -->
     <div class="header-container">
       <div id="status-indicator" class="status-indicator"></div>
       <select id="sound-picker">
-        <option value="/rain.mp3">Rain Sound</option>
-        <option value="/smooth-brown-noise.mp3">Smooth Brown Noise</option>
-        <option value="/rain.aac">Rain Acc</option>
+        <option value="/rain.aac">Rain</option>
+        <option value="/brown.aac">Brown Noise</option>
+        <option value="/pink.aac">Pink Noise</option>
+        <option value="/smooth-pink.aac">Smooth Pink</option>
+        <option value="/dense-pink.aac">Dense Pink</option>
       </select>
     </div>
 
-    <!-- Separate Play / Pause Controls -->
     <div class="controls">
       <button id="play-btn" class="btn">Play</button>
       <button id="pause-btn" class="btn">Pause</button>
     </div>
 
-    <audio id="audio-player" src="/rain.mp3" preload="auto" loop></audio>
+    <audio id="audio-player" src="/rain.aac" preload="auto" loop></audio>
 
     <script>
       const playBtn = document.getElementById('play-btn');
@@ -143,19 +138,13 @@
 
       let fadeInterval;
 
-      // Optimized Fade-in Logic
       const fadeIn = () => {
-        // Stop any existing fade
         clearInterval(fadeInterval);
-
-        // Reset volume to 0 and start
         audio.volume = 0;
         audio.play().catch(console.error);
 
-        // Start fading up
         fadeInterval = setInterval(() => {
           if (audio.volume < 1) {
-            // Increments volume
             audio.volume = Math.min(audio.volume + 0.05, 1);
           } else {
             clearInterval(fadeInterval);
@@ -170,14 +159,10 @@
         audio.pause();
       });
 
-      // Sound Picker Logic
       soundPicker.addEventListener('change', (event) => {
         const wasPlaying = !audio.paused;
-
-        // Update the source
         audio.src = event.target.value;
 
-        // If it was playing, trigger the fade-in for the new file
         if (wasPlaying) {
           fadeIn();
         }
@@ -191,11 +176,33 @@
         statusIndicator.classList.remove('playing');
       });
 
-      // Service Worker Registration
+      // Request persistent storage
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().then((isPersisted) => {
+          console.log(isPersisted ? 'Storage persisted.' : 'Storage is best-effort.');
+        });
+      }
+
+      // Aggressively pre-fetch all audio files on page load
+      const prefetchAudioFiles = () => {
+        const options = Array.from(soundPicker.options);
+        options.forEach((option) => {
+          fetch(option.value)
+            .then(() => console.log(`Successfully pre-fetched: ${option.value}`))
+            .catch((err) => console.error(`Failed to pre-fetch: ${option.value}`, err));
+        });
+      };
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(console.error);
+
+          // Fire the pre-fetch after SW registration starts
+          prefetchAudioFiles();
         });
+      } else {
+        // Fallback for browsers without SW support
+        window.addEventListener('load', prefetchAudioFiles);
       }
     </script>
   </body>
