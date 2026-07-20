@@ -122,6 +122,7 @@
       <select id="sound-picker">
         <option value="/rain.mp3">Rain Sound</option>
         <option value="/smooth-brown-noise.mp3">Smooth Brown Noise</option>
+        <option value="/rain.aac">Rain Acc</option>
       </select>
     </div>
 
@@ -140,30 +141,48 @@
       const soundPicker = document.getElementById('sound-picker');
       const statusIndicator = document.getElementById('status-indicator');
 
-      // Play Button Logic
-      playBtn.addEventListener('click', () => {
-        audio.play().catch((error) => {
-          console.error('Audio playback failed:', error);
-        });
-      });
+      let fadeInterval;
 
-      // Pause Button Logic
+      // Optimized Fade-in Logic
+      const fadeIn = () => {
+        // Stop any existing fade
+        clearInterval(fadeInterval);
+
+        // Reset volume to 0 and start
+        audio.volume = 0;
+        audio.play().catch(console.error);
+
+        // Start fading up
+        fadeInterval = setInterval(() => {
+          if (audio.volume < 1) {
+            // Increments volume
+            audio.volume = Math.min(audio.volume + 0.05, 1);
+          } else {
+            clearInterval(fadeInterval);
+          }
+        }, 100);
+      };
+
+      playBtn.addEventListener('click', fadeIn);
+
       pauseBtn.addEventListener('click', () => {
+        clearInterval(fadeInterval);
         audio.pause();
       });
 
-      // Handle Dropdown Changes
+      // Sound Picker Logic
       soundPicker.addEventListener('change', (event) => {
         const wasPlaying = !audio.paused;
+
+        // Update the source
         audio.src = event.target.value;
 
-        // If it was already playing, automatically start the new sound
+        // If it was playing, trigger the fade-in for the new file
         if (wasPlaying) {
-          audio.play().catch(console.error);
+          fadeIn();
         }
       });
 
-      // The browser's native audio events are the most reliable way to trigger UI updates
       audio.addEventListener('play', () => {
         statusIndicator.classList.add('playing');
       });
@@ -175,14 +194,7 @@
       // Service Worker Registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/sw.js')
-            .then((registration) => {
-              console.log('ServiceWorker registered');
-            })
-            .catch((error) => {
-              console.error('ServiceWorker registration failed:', error);
-            });
+          navigator.serviceWorker.register('/sw.js').catch(console.error);
         });
       }
     </script>
