@@ -1,6 +1,6 @@
 {
-  "name": "Audio Player",
-  "short_name": "Player",
+  "name": "Offline Rain Sound",
+  "short_name": "Rain",
   "display": "standalone",
   "start_url": "/",
   "background_color": "#111111",

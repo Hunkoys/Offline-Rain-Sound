@@ -6,6 +6,7 @@
     <title>Offline Rain Sound</title>
 
     <link rel="manifest" href="/manifest.json" />
+
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Player" />
@@ -41,78 +42,51 @@
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         transition: transform 0.1s ease;
-        min-width: 160px;
+        min-width: 160px; /* Prevents the button from shrinking/growing when text changes */
       }
       #play-btn:active {
         transform: scale(0.95);
       }
-      #play-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
     </style>
   </head>
   <body>
-    <button id="play-btn">Loading...</button>
+    <button id="play-btn">Play</button>
+
+    <!-- Updated: src is rain.mp3 and added the loop attribute -->
+    <audio id="audio-player" src="/rain.mp3" preload="auto" loop></audio>
 
     <script>
       const playBtn = document.getElementById('play-btn');
+      const audio = document.getElementById('audio-player');
 
-      let audioContext;
-      let sourceNode;
-      let audioBuffer;
-      let isPlaying = false;
-
-      // 1. Fetch the raw audio data immediately when the page loads
-      const fetchAudio = fetch('/rain.wav')
-        .then((response) => response.arrayBuffer())
-        .then((buffer) => {
-          playBtn.textContent = 'Play'; // Enable button once downloaded
-          return buffer;
-        })
-        .catch((err) => {
-          console.error('Failed to load audio file:', err);
-          playBtn.textContent = 'Error';
-        });
-
-      // 2. Playback Logic using Web Audio API
-      playBtn.addEventListener('click', async () => {
-        // Browsers require audio contexts to be created after a user clicks
-        if (!audioContext) {
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const rawBuffer = await fetchAudio;
-          audioBuffer = await audioContext.decodeAudioData(rawBuffer);
-        }
-
-        if (isPlaying) {
-          // Pause the audio engine
-          await audioContext.suspend();
-          isPlaying = false;
-          playBtn.textContent = 'Play';
+      // Updated: Toggle logic for Play/Pause
+      playBtn.addEventListener('click', () => {
+        if (audio.paused) {
+          audio
+            .play()
+            .then(() => {
+              playBtn.textContent = 'Pause';
+            })
+            .catch((error) => {
+              console.error('Audio playback failed. Browser may be blocking it:', error);
+            });
         } else {
-          // If it's the very first time playing, we have to create the audio source
-          if (!sourceNode) {
-            sourceNode = audioContext.createBufferSource();
-            sourceNode.buffer = audioBuffer;
-            sourceNode.loop = true; // This creates the flawless, gapless loop
-            sourceNode.connect(audioContext.destination);
-            sourceNode.start(0);
-          }
-
-          // Resume the audio engine
-          await audioContext.resume();
-          isPlaying = true;
-          playBtn.textContent = 'Pause';
+          audio.pause();
+          playBtn.textContent = 'Play';
         }
       });
 
-      // 3. Service Worker Registration
+      // Service Worker Registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker
             .register('/sw.js')
-            .then((reg) => console.log('ServiceWorker registered'))
-            .catch((err) => console.error('SW registration failed:', err));
+            .then((registration) => {
+              console.log('ServiceWorker registered with scope:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('ServiceWorker registration failed:', error);
+            });
         });
       }
     </script>

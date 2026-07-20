@@ -1,7 +1,7 @@
 const CACHE_NAME = 'audio-app-v1';
 
 // The exact list of files to save offline
-const urlsToCache = ['/', '/index.html', '/manifest.json', '/rain.wav'];
+const urlsToCache = ['/', '/index.html', '/manifest.json', '/rain.mp3'];
 
 // Install phase: Download and cache the files
 self.addEventListener('install', (event) => {
