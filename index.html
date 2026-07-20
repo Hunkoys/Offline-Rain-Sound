@@ -129,10 +129,7 @@
 
     <audio id="audio-player" src="/rain.aac" preload="auto" loop></audio>
 
-    <script type="module">
-      import { inject } from '@vercel/analytics';
-      inject();
-
+    <script>
       const playBtn = document.getElementById('play-btn');
       const pauseBtn = document.getElementById('pause-btn');
       const audio = document.getElementById('audio-player');
