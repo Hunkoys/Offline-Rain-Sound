@@ -2,14 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Prevents zooming on mobile when tapping the button -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Offline Rain Sound</title>
 
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Required Meta Tags for iOS / Apple Devices -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Player" />
@@ -45,8 +42,8 @@
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         transition: transform 0.1s ease;
+        min-width: 160px; /* Prevents the button from shrinking/growing when text changes */
       }
-      /* Adds a tactile click effect */
       #play-btn:active {
         transform: scale(0.95);
       }
@@ -55,22 +52,31 @@
   <body>
     <button id="play-btn">Play</button>
 
-    <!-- preload="auto" ensures the audio is ready before the user clicks -->
-    <audio id="audio-player" src="/rain.wav" preload="auto"></audio>
+    <!-- Updated: src is rain.wav and added the loop attribute -->
+    <audio id="audio-player" src="/rain.wav" preload="auto" loop></audio>
 
     <script>
       const playBtn = document.getElementById('play-btn');
       const audio = document.getElementById('audio-player');
 
-      // 1. Audio Playback Logic
+      // Updated: Toggle logic for Play/Pause
       playBtn.addEventListener('click', () => {
-        audio.currentTime = 0; // Rewinds to start if clicked while already playing
-        audio.play().catch((error) => {
-          console.error('Audio playback failed. Browser may be blocking it:', error);
-        });
+        if (audio.paused) {
+          audio
+            .play()
+            .then(() => {
+              playBtn.textContent = 'Pause';
+            })
+            .catch((error) => {
+              console.error('Audio playback failed. Browser may be blocking it:', error);
+            });
+        } else {
+          audio.pause();
+          playBtn.textContent = 'Play';
+        }
       });
 
-      // 2. Service Worker Registration
+      // Service Worker Registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker
